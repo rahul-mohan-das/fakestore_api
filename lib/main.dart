@@ -14,13 +14,18 @@ class _MainAppState extends State<MainApp> {
     fetchProducts();
   }
 
-  List<dynamic> products = [];
+  static List<dynamic> products = [];
+  static var productvalues = [];
+
   Future<void> fetchProducts() async {
     final response =
         await http.get(Uri.parse('https://fakestoreapi.com/products'));
     if (response.statusCode == 200) {
       setState(() {
         products = json.decode(response.body);
+        products.forEach((element) {
+          productvalues.add(element["title"]);
+        });
       });
     } else {
       throw Exception('Failed to load products');
@@ -32,14 +37,11 @@ class _MainAppState extends State<MainApp> {
     return Scaffold(
       appBar: AppBar(
         title: ElevatedButton(
-          child: Text("Search"),
-          onPressed: () => {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => MyApp()),
-            )
-          },
-        ),
+            child: Text("Search"),
+            onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MyApp()),
+                )),
       ),
       body: GridView.count(
         crossAxisCount: 2,
@@ -96,30 +98,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _searchController = TextEditingController();
-  final List<String> _data = [
-    'Apple',
-    'Banana',
-    'Cherry',
-    'Date',
-    'Fig',
-    'Grape',
-    'Lemon',
-    'Mango',
-    'Orange',
-    'Papaya',
-    'Peach',
-    'Plum',
-    'Raspberry',
-    'Strawberry',
-    'Watermelon',
-  ];
-  List<String> _filteredData = [];
+
+  List _filteredData = [];
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _filteredData = _data;
+
+    _filteredData = _MainAppState.productvalues;
     _searchController.addListener(_performSearch);
   }
 
@@ -138,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await Future.delayed(Duration(milliseconds: 1000));
 
     setState(() {
-      _filteredData = _data
+      _filteredData = _MainAppState.productvalues
           .where((element) => element
               .toLowerCase()
               .contains(_searchController.text.toLowerCase()))
